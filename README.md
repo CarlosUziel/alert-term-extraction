@@ -2,6 +2,11 @@
 
 <div id="top"></div>
 
+[![GitHub license](https://img.shields.io/github/license/CarlosUziel/alert-term-extraction)](https://github.com/CarlosUziel/alert-term-extraction/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/CarlosUziel/alert-term-extraction)](https://github.com/CarlosUziel/alert-term-extraction/stargazers)
+
+![FastAPI App Docs](docs/fastapi_app_docs.png)
+
 A FastAPI app for extracting alert terms from unstructured alert texts. Designed for integration into larger systems or as a standalone tool for information extraction via a deployable microservice with Docker.
 
 ---
