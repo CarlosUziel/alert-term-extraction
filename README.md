@@ -68,17 +68,17 @@ The underlying solution is simple: terms obtained from the alert terms API are d
 
 2. **Install dependencies** (recommended: use `uv`):
 
-    Install Python dependencies using `uv`:
+   Install Python dependencies using `uv`:
 
-    ```bash
-    uv sync
-    ```
+   ```bash
+   uv sync
+   ```
 
    Install local package for development:
 
-    ```bash
-    uv pip install -e .
-    ```
+   ```bash
+   uv pip install -e .
+   ```
 
 ### Configuration
 
@@ -86,9 +86,9 @@ Configuration is managed via environment variables defined in a `.env` file at t
 
 Copy the example configuration file:
 
-  ```fish
-  cp .env.dist .env
-  ```
+```fish
+cp .env.dist .env
+```
 
 And edit `.env` with your settings.
 
@@ -98,15 +98,15 @@ And edit `.env` with your settings.
 
 Locally:
 
-  ```fish
-  fastapi dev src/app/main.py --reload --port 8000
-  ```
+```fish
+fastapi dev src/app/main.py --reload --port 8000
+```
 
 Or via Docker:
 
-  ```fish
-  docker compose down && docker compose build && docker compose up -d
-  ```
+```fish
+docker compose down && docker compose build && docker compose up -d
+```
 
 Operational logs as well as outputs will be available under `.logs/`.
 
@@ -141,21 +141,23 @@ flowchart LR
 
 ## 📡 API Documentation
 
-
 The Alert Term Extraction API exposes the following endpoints:
 
 ### `POST /start-extraction`
+
 Start the alert term extraction process in a background worker.
 
 **Request Body:**
+
 ```json
 {
-  "frequency_ms": 500,         // integer (100-1000), frequency of checks in milliseconds
-  "total_checks": 100          // optional integer, number of checks to perform (default: 100, null = infinite)
+  "frequency_ms": 500, // integer (100-1000), frequency of checks in milliseconds
+  "total_checks": 100 // optional integer, number of checks to perform (default: 100, null = infinite)
 }
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Extraction started with frequency 500ms and 100 checks",
@@ -164,15 +166,18 @@ Start the alert term extraction process in a background worker.
 ```
 
 **Errors:**
+
 - 400: Extraction process is already running
 - 500: Failed to start extraction
 
 ---
 
 ### `POST /stop-extraction`
+
 Stop the currently running extraction process.
 
 **Response:**
+
 ```json
 {
   "message": "Extraction process stopped successfully"
@@ -180,19 +185,22 @@ Stop the currently running extraction process.
 ```
 
 **Errors:**
+
 - 400: No extraction process is currently running
 - 500: Failed to stop extraction
 
 ---
 
 ### `GET /extraction-status`
+
 Get the current status of the extraction process.
 
 **Response:**
+
 ```json
 {
-  "status": "running",           // or "stopped"
-  "process_id": 12345,            // present if running
+  "status": "running", // or "stopped"
+  "process_id": 12345, // present if running
   "message": "Extraction is running"
 }
 ```
@@ -200,9 +208,11 @@ Get the current status of the extraction process.
 ---
 
 ### `GET /health`
+
 Health check endpoint.
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -262,7 +272,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## 🙏 Acknowledgments
 
 - **Prewave Data Science Team**: For the opportunity to tackle this challenge
-- **Next.js**: For the powerful React framework
 - **Open Source Contributors**: For the tools and libraries that made this project possible
 
 <p align="right">(<a href="#top">back to top</a>)</p>
