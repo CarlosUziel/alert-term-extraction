@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+      args:
+        - GUEST_PORT=${GUEST_PORT}
+    ports:
+      - "${HOST_PORT}:${GUEST_PORT}"
+    volumes:
+      - ./src:/app
+    env_file:
+      - .env
