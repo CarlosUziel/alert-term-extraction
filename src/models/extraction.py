@@ -3,9 +3,10 @@
 from datetime import datetime, timezone
 from typing import List
 
+from pydantic import BaseModel, Field
+
 from models.alerts import AlertList
 from models.query_terms import QueryTermList
-from pydantic import BaseModel, Field
 
 
 class TermMatch(BaseModel):

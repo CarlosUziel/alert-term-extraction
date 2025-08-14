@@ -5,11 +5,11 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
 import pytest
+
+from extraction.utils import find_term_matches
 from models.alerts import Alert, AlertContent, AlertList
 from models.extraction import LogEntry
 from models.query_terms import QueryTerm, QueryTermList
-
-from extraction.utils import find_term_matches
 
 
 @pytest.fixture

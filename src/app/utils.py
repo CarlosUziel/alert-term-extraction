@@ -54,9 +54,7 @@ def extraction_worker(
 
                 # Log the entire TermMatchList object as a JSON string
                 if log_entry.matches:
-                    logger.bind(extracted_alert=True).info(
-                        log_entry.model_dump_json()
-                    )
+                    logger.bind(extracted_alert=True).info(log_entry.model_dump_json())
 
             except Exception as e:
                 logger.error(f"Error during extraction check: {e}")
