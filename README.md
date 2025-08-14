@@ -16,7 +16,12 @@ A FastAPI app for extracting alert terms from unstructured alert texts. Designed
   <ol>
     <li><a href="#-motivation">🧠 Motivation</a></li>
     <li><a href="#-features-summary">✨ Features Summary</a></li>
-    <li><a href="#-solution-approach">🛠️ Solution Approach</a></li>
+    <li>
+      <a href="#-solution-approach">🛠️ Solution Approach</a>
+      <ul>
+        <li><a href="#potential-improvements">Potential Improvements</a></li>
+      </ul>
+    </li>
     <li>
       <a href="#-getting-started">🚀 Getting Started</a>
       <ul>
@@ -27,8 +32,18 @@ A FastAPI app for extracting alert terms from unstructured alert texts. Designed
       </ul>
     </li>
     <li><a href="#-api-usage">📡 API Usage</a></li>
-    <li><a href="#-architecture-overview">🏗️ Architecture Overview</a></li>
-    <li><a href="#-file-structure">📂 File Structure</a></li>
+    <li>
+      <a href="#-architecture-overview">🏗️ Architecture Overview</a>
+      <ul>
+        <li><a href="#component-breakdown">Component Breakdown</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#-file-structure">📂 File Structure</a>
+      <ul>
+        <li><a href="#modules-breakdown">Modules Breakdown</a></li>
+      </ul>
+    </li>
     <li><a href="#-license">📄 License</a></li>
     <li><a href="#-additional-notes">📝 Additional Notes</a></li>
     <li><a href="#-contact">👤 Contact</a></li>
@@ -332,11 +347,124 @@ graph TD
 
 ### Component Breakdown
 
-1. **FastAPI App**: This is the main entry point of the service. It exposes REST endpoints to control the extraction process.
+1. **FastAPI App (`src/app/main.py`)**: This is the main entry point of the service. It exposes REST endpoints to control the extraction process.
 
    - `POST /start-extraction`: Spawns a new background worker to begin the extraction.
+
    - `POST /stop-extraction`: Stops the currently running worker.
+
    - `GET /extraction-status`: Reports the status of the worker (running/stopped).
+
    - `GET /health`: A simple health check endpoint.
 
-2. **Background Worker**: A separate process that runs the main extraction
+2. **Background Worker (`src/app/utils.py`)**: A separate process that runs the main extraction loop. It periodically fetches data, calls the extraction logic, and logs the results. This ensures the API remains responsive while the extraction is in progress.
+
+3. **Clients for External APIs (`src/clients/`)**: These modules are responsible for communicating with external services.
+
+   - `AlertTextClient`: Fetches unstructured alert data from the **Alert Text API**.
+
+   - `AlertTermsClient`: Fetches the list of query terms from the **Alert Terms API**.
+
+4. **Core Components**:
+
+   - **Extraction Logic (`src/extraction/utils.py`)**: Contains the core functions for matching terms within alert texts. It implements the matching strategies (e.g., ordered vs. unordered matching).
+
+   - **Pydantic Models (`src/models/`)**: Defines the data structures for API requests/responses and internal data, ensuring type safety and validation.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## 📂 File Structure
+
+```bash
+
+alert-term-extraction/
+├── README.md
+├── pyproject.toml
+├── uv.lock
+├── docker-compose.yml
+├── docker/
+│   └── app/
+│       └── Dockerfile
+├── src/
+│   ├── app/
+│   ├── clients/
+│   ├── config/
+│   ├── extraction/
+│   ├── models/
+│   └── tests/
+```
+
+### Modules Breakdown
+
+- **`src/app`**: Contains the main FastAPI application.
+
+  - **`main.py`**: Defines the API endpoints (`/start-extraction`, `/stop-extraction`, etc.) and manages the lifecycle of the background extraction process.
+
+  - **`utils.py`**: Holds the `extraction_worker` function that runs in the background, orchestrating the calls to API clients and the extraction logic.
+
+- **`src/clients`**: Includes clients for interacting with external APIs.
+
+  - **`AlertTextClient.py`**: A dedicated client to fetch alert data from the external alert text API.
+
+  - **`AlertTermsClient.py`**: A client for fetching query terms from the corresponding external API.
+
+- **`src/config`**: Manages application settings and logging.
+
+  - **`settings.py`**: Uses Pydantic's `BaseSettings` to load configuration from environment variables, providing validated and type-hinted settings.
+
+  - **`logger.py`**: Configures the application's logger to ensure consistent and structured logging.
+
+- **`src/extraction`**: Holds the core logic for matching terms.
+
+  - **`utils.py`**: Contains the primary term-matching functions, including logic for handling ordered and unordered term matching.
+
+- **`src/models`**: Defines Pydantic models for data validation and serialization.
+
+  - **`api.py`**: Models for API request and response bodies.
+
+  - **`alerts.py`**: Data structures for representing alerts fetched from the API.
+
+  - **`query_terms.py`**: Data structures for query terms.
+
+  - **`extraction.py`**: Models for representing the results of the term extraction.
+
+- **`src/tests`**: Contains unit tests for the application's components, mirroring the project's structure.
+
+  - **`clients/`**: Tests for the API clients.
+
+  - **`extraction/`**: Tests for the core term-matching logic.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## 📝 Additional Notes
+
+- Code is formatted and linted using [Ruff](https://github.com/astral-sh/ruff).
+
+- To ensure code quality, run:
+
+  ```fish
+
+  ruff check . --fix && ruff format . && ruff check --fix --select I
+
+  ```
+
+- If you use pre-commit hooks, add Ruff to your `.pre-commit-config.yaml`.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## 👤 Contact
+
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/CarlosUziel)[![Google Scholar](https://img.shields.io/badge/Google_Scholar-4285F4?style=for-the-badge&logo=google-scholar&logoColor=white)](https://scholar.google.co.uk/citations?user=tEz_OeIAAAAJ&hl)[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/carlosuziel)[![Homepage](https://img.shields.io/badge/Homepage-blue?style=for-the-badge&logo=home&logoColor=white)](https://perez-malla.com/)
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## 🙏 Acknowledgments
+
+- **Prewave Data Science Team**: For the opportunity to tackle this challenge
+- **Open Source Contributors**: For the tools and libraries that made this project possible
+
+<p align="right">(<a href="#top">back to top</a>)</p>
