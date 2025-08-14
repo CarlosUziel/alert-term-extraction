@@ -257,6 +257,7 @@ The extraction process fetches alerts and query terms from external APIs, matche
 The project is designed as a modular FastAPI application that runs a background process for term extraction, interacting with external APIs to fetch data and using a set of core utilities to perform the matching logic.
 
 ```mermaid
+%%{init: { "theme": "neutral" } }%%
 graph TD
     subgraph "User Interaction"
         User["User / API Client"]
@@ -316,7 +317,6 @@ graph TD
     H -- "returns term data" --> F
 
     %% Styling
-    theme neutral
     style User fill:#cde4ff,stroke:#99b3ff,stroke-width:2px
     style A1 fill:#f9f9f9,stroke:#333,stroke-width:1px
     style A2 fill:#f9f9f9,stroke:#333,stroke-width:1px
