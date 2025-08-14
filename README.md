@@ -316,6 +316,7 @@ graph TD
     H -- "returns term data" --> F
 
     %% Styling
+    theme neutral
     style User fill:#cde4ff,stroke:#99b3ff,stroke-width:2px
     style A1 fill:#f9f9f9,stroke:#333,stroke-width:1px
     style A2 fill:#f9f9f9,stroke:#333,stroke-width:1px
