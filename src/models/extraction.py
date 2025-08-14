@@ -3,6 +3,8 @@
 from datetime import datetime, timezone
 from typing import List
 
+from models.alerts import AlertList
+from models.query_terms import QueryTermList
 from pydantic import BaseModel, Field
 
 
@@ -36,17 +38,25 @@ class TermMatch(BaseModel):
         return self.alert_id == other.alert_id and self.term_id == other.term_id
 
 
-class TermMatchList(BaseModel):
+class LogEntry(BaseModel):
     """
-    Represents a list of term matches, with a timestamp for creation.
+    Represents a single log entry for the extraction process.
 
     Attributes:
-        matches: A list of `TermMatch` objects.
         created_at: The UTC timestamp indicating when the list was generated.
+        alert_text_data: The alert text data fetched from the API.
+        alert_query_term_data: The query term data fetched from the API.
+        matches: A list of `TermMatch` objects.
     """
 
-    matches: List[TermMatch] = Field(..., description="A list of unique term matches.")
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="The UTC timestamp of when the match list was created.",
     )
+    alert_text_data: AlertList = Field(
+        ..., description="The alert text data fetched from the API."
+    )
+    alert_query_term_data: QueryTermList = Field(
+        ..., description="The query term data fetched from the API."
+    )
+    matches: List[TermMatch] = Field(..., description="A list of unique term matches.")

@@ -47,14 +47,16 @@ def extraction_worker(
 
             try:
                 # Perform the extraction with the API clients
-                matches = find_term_matches(alert_api_client, terms_api_client)
+                log_entry = find_term_matches(alert_api_client, terms_api_client)
                 logger.info(
-                    f"Check {check_count + 1}/{total_checks or '∞'}: Found {len(matches.matches)} matches"
+                    f"Check {check_count + 1}/{total_checks or '∞'}: Found {len(log_entry.matches)} matches"
                 )
 
                 # Log the entire TermMatchList object as a JSON string
-                if matches.matches:
-                    logger.bind(extracted_alert=True).info(matches.model_dump_json())
+                if log_entry.matches:
+                    logger.bind(extracted_alert=True).info(
+                        log_entry.model_dump_json()
+                    )
 
             except Exception as e:
                 logger.error(f"Error during extraction check: {e}")

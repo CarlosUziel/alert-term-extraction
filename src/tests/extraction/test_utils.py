@@ -6,11 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from config.settings import settings
-from extraction.utils import (
-    _get_relevant_alert_texts,
-    _is_term_in_alert,
-    find_term_matches,
-)
+from extraction.utils import _is_term_in_alert, find_term_matches
 from models.alerts import Alert, AlertContent, AlertList
 from models.extraction import TermMatch
 from models.query_terms import QueryTerm, QueryTermList
@@ -59,34 +55,6 @@ def simple_alert() -> Alert:
     )
 
 
-# --- Tests for _get_relevant_alert_texts ---
-
-
-def test_get_relevant_texts_with_language_filter(sample_alert):
-    """Test that only texts matching the term's language are returned when filtering is enabled."""
-    settings.filter_by_language = True
-    term_en = QueryTerm(id=1, text="test", language="en", keepOrder=True)
-    term_de = QueryTerm(id=2, text="test", language="de", keepOrder=True)
-
-    texts_en = _get_relevant_alert_texts(term_en, sample_alert)
-    texts_de = _get_relevant_alert_texts(term_de, sample_alert)
-
-    assert len(texts_en) == 2
-    assert "A major supply chain disruption occurred." in texts_en
-    assert len(texts_de) == 1
-    assert "Eine Störung der Lieferkette." in texts_de
-
-
-def test_get_relevant_texts_without_language_filter(sample_alert):
-    """Test that all texts are returned when language filtering is disabled."""
-    settings.filter_by_language = False
-    term_en = QueryTerm(id=1, text="test", language="en", keepOrder=True)
-
-    texts = _get_relevant_alert_texts(term_en, sample_alert)
-
-    assert len(texts) == 3
-
-
 # --- Tests for _is_term_in_alert ---
 
 
@@ -103,6 +71,8 @@ def test_get_relevant_texts_without_language_filter(sample_alert):
         ("disruption sectors", False, True),
         ("nonexistent term", True, False),
         ("nonexistent term", False, False),
+        ("supply nonexistent", False, True),  # One word matches
+        ("nonexistent supply", False, True),  # One word matches, different order
     ],
 )
 def test_is_term_in_alert_various_cases(term_text, keep_order, expected, sample_alert):
@@ -171,10 +141,10 @@ def test_find_term_matches_finds_correct_matches(mock_alert_client, mock_terms_c
     settings.filter_by_language = True
     result = find_term_matches(mock_alert_client, mock_terms_client)
 
-    assert len(result.matches) == 2
+    assert len(result.matches) == 3
     assert TermMatch(alert_id="a1", term_id=1) in result.matches
     assert TermMatch(alert_id="a2", term_id=2) in result.matches
-    assert TermMatch(alert_id="a1", term_id=2) not in result.matches
+    assert TermMatch(alert_id="a1", term_id=2) in result.matches
 
 
 def test_find_term_matches_returns_sorted_results(mock_alert_client, mock_terms_client):
@@ -193,6 +163,7 @@ def test_find_term_matches_returns_sorted_results(mock_alert_client, mock_terms_
     assert result.matches == [
         TermMatch(alert_id="a0", term_id=2),
         TermMatch(alert_id="a1", term_id=1),
+        TermMatch(alert_id="a1", term_id=2),
         TermMatch(alert_id="a2", term_id=2),
     ]
 

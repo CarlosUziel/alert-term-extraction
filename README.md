@@ -132,9 +132,10 @@ Operational logs as well as outputs will be available under `.logs/`.
 
 The Alert Term Extraction API is accessible at `{host_name}:{host_port}` (e.g., [`localhost:8000`](http://localhost:8000) for local deployment). You can also interact with the API through the auto-generated documentation available at [`/docs`](http://localhost:8000/docs) on the application's URL.
 
-### `POST /start-extraction`
+<details>
+<summary><strong>POST /start-extraction</strong></summary>
 
-Start the alert term extraction process in a background worker.
+Starts the alert term extraction process in a background worker.
 
 **Example using cURL:**
 
@@ -162,14 +163,15 @@ curl -X POST "http://localhost:8000/start-extraction" -H "Content-Type: applicat
 
 **Errors:**
 
-- 400: Extraction process is already running
-- 500: Failed to start extraction
+- **400**: Extraction process is already running.
+- **500**: Failed to start extraction.
 
----
+</details>
 
-### `POST /stop-extraction`
+<details>
+<summary><strong>POST /stop-extraction</strong></summary>
 
-Stop the currently running extraction process.
+Stops the currently running extraction process.
 
 **Example using cURL:**
 
@@ -187,14 +189,15 @@ curl -X POST "http://localhost:8000/stop-extraction"
 
 **Errors:**
 
-- 400: No extraction process is currently running
-- 500: Failed to stop extraction
+- **400**: No extraction process is currently running.
+- **500**: Failed to stop extraction.
 
----
+</details>
 
-### `GET /extraction-status`
+<details>
+<summary><strong>GET /extraction-status</strong></summary>
 
-Get the current status of the extraction process.
+Gets the current status of the extraction process.
 
 **Example using cURL:**
 
@@ -212,9 +215,10 @@ curl -X GET "http://localhost:8000/extraction-status"
 }
 ```
 
----
+</details>
 
-### `GET /health`
+<details>
+<summary><strong>GET /health</strong></summary>
 
 Health check endpoint.
 
@@ -233,25 +237,118 @@ curl -X GET "http://localhost:8000/health"
 }
 ```
 
----
+</details>
 
-The extraction process fetches alerts and query terms from external APIs, matches terms to alert texts, and logs the results. For more details, see the extraction logic in `src/app/utils.py` and the data models in `src/models/`.
+The extraction process fetches alerts and query terms from external APIs, matches terms to alert texts, and logs the results to `.logs/extracted_alerts.jsonl`. Each entry in that log file contains, in this order:
+
+1. A timestamp of when this output was generated.
+2. The alert text data (JSON of the pydantic model).
+3. The alert query term data (JSON of the pydantic model).
+4. A list of matches (Alert ID and Query ID) found from a single API request.
+
+> [!NOTE]
+>
+> Storing the full data returned from the external APIs alongside the matches is a highly inefficient use of storage space. This approach is used here for demonstration and debugging purposes, as it allows for a clear and complete record of what was processed. In a production environment, it would be more efficient to store only the essential identifiers (e.g., alert IDs and term IDs) and the resulting matches. The data returned from the APIs could then be stored into a datalake or database for further processing, analysis and/or data lineage.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 🏗️ Architecture Overview
 
-The project is organized as a Python package with a focus on modularity and testability.
+The project is designed as a modular FastAPI application that runs a background process for term extraction, interacting with external APIs to fetch data and using a set of core utilities to perform the matching logic.
 
 ```mermaid
-flowchart LR
-  A[API] --> B[API Clients]
-  B --> C[Extraction Utilities]
+graph TD
+    subgraph "User Interaction"
+        User["User / API Client"]
+    end
+
+    subgraph "Alert Term Extraction Service"
+        direction LR
+        subgraph "FastAPI App (src/app/main.py)"
+            direction TB
+            A1["POST /start-extraction"]
+            A2["POST /stop-extraction"]
+            A3["GET /extraction-status"]
+            A4["GET /health"]
+        end
+
+        subgraph "Background Process"
+            direction TB
+            B["Extraction Worker (src/app/utils.py)"]
+        end
+
+        subgraph "Core Components"
+            direction TB
+            C["Extraction Logic (src/extraction/utils.py)"]
+            D["Pydantic Models (src/models)"]
+        end
+
+        subgraph "Clients for External APIs"
+            direction TB
+            E["AlertTextClient (src/clients/AlertTextClient.py)"]
+            F["AlertTermsClient (src/clients/AlertTermsClient.py)"]
+        end
+    end
+
+    subgraph "External Dependencies"
+        direction TB
+        G["Alert Text API"]
+        H["Alert Terms API"]
+    end
+
+    User --> A1
+    User --> A2
+    User --> A3
+    User --> A4
+
+    A1 -- spawns --> B
+
+    B -- uses --> E
+    B -- uses --> F
+    B -- calls --> C
+
+    C -- uses --> D
+
+    E --> G
+    F --> H
+
+    G -- "returns alert data" --> E
+    H -- "returns term data" --> F
+
+    %% Styling
+    style User fill:#cde4ff,stroke:#99b3ff,stroke-width:2px
+    style A1 fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style A2 fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style A3 fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style A4 fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style B fill:#fff2cc,stroke:#ffcc00,stroke-width:2px
+    style C fill:#d5e8d4,stroke:#82b366,stroke-width:2px
+    style D fill:#d5e8d4,stroke:#82b366,stroke-width:2px
+    style E fill:#e1d5e7,stroke:#9673a6,stroke-width:2px
+    style F fill:#e1d5e7,stroke:#9673a6,stroke-width:2px
+    style G fill:#ffe6cc,stroke:#ff9933,stroke-width:2px
+    style H fill:#ffe6cc,stroke:#ff9933,stroke-width:2px
 ```
 
-1. **API**: Entry point for service (FastAPI app)
-2. **API Clients**: Internal/external clients for interacting with the API
-3. **Extraction Utilities**: Core logic for parsing and extracting terms
+### Component Breakdown
+
+1. **FastAPI App (`src/app/main.py`)**: This is the main entry point of the service. It exposes REST endpoints to control the extraction process.
+
+   - `POST /start-extraction`: Spawns a new background worker to begin the extraction.
+   - `POST /stop-extraction`: Stops the currently running worker.
+   - `GET /extraction-status`: Reports the status of the worker (running/stopped).
+   - `GET /health`: A simple health check endpoint.
+
+2. **Background Worker (`src/app/utils.py`)**: A separate process that runs the main extraction loop. It periodically fetches data, calls the extraction logic, and logs the results. This ensures the API remains responsive while the extraction is in progress.
+
+3. **Clients for External APIs (`src/clients/`)**: These modules are responsible for communicating with external services.
+
+   - `AlertTextClient`: Fetches unstructured alert data from the **Alert Text API**.
+   - `AlertTermsClient`: Fetches the list of query terms from the **Alert Terms API**.
+
+4. **Core Components**:
+   - **Extraction Logic (`src/extraction/utils.py`)**: Contains the core functions for matching terms within alert texts. It implements the matching strategies (e.g., ordered vs. unordered matching).
+   - **Pydantic Models (`src/models/`)**: Defines the data structures for API requests/responses and internal data, ensuring type safety and validation.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -277,12 +374,35 @@ alert-term-extraction/
 
 ### Modules Breakdown
 
-- **src/app**: Contains the main FastAPI application, including API endpoints and process management.
-- **src/clients**: Includes clients for interacting with external APIs to fetch alert texts and query terms.
-- **src/config**: Manages application settings and logging configuration.
-- **src/extraction**: Holds the core logic for matching terms within alert texts.
-- **src/models**: Defines Pydantic models for data validation and serialization (API requests/responses, data structures).
-- **src/tests**: Contains unit tests for the application's components.
+- **`src/app`**: Contains the main FastAPI application.
+
+  - **`main.py`**: Defines the API endpoints (`/start-extraction`, `/stop-extraction`, etc.) and manages the lifecycle of the background extraction process.
+  - **`utils.py`**: Holds the `extraction_worker` function that runs in the background, orchestrating the calls to API clients and the extraction logic.
+
+- **`src/clients`**: Includes clients for interacting with external APIs.
+
+  - **`AlertTextClient.py`**: A dedicated client to fetch alert data from the external alert text API.
+  - **`AlertTermsClient.py`**: A client for fetching query terms from the corresponding external API.
+
+- **`src/config`**: Manages application settings and logging.
+
+  - **`settings.py`**: Uses Pydantic's `BaseSettings` to load configuration from environment variables, providing validated and type-hinted settings.
+  - **`logger.py`**: Configures the application's logger to ensure consistent and structured logging.
+
+- **`src/extraction`**: Holds the core logic for matching terms.
+
+  - **`utils.py`**: Contains the primary term-matching functions, including logic for handling ordered and unordered term matching.
+
+- **`src/models`**: Defines Pydantic models for data validation and serialization.
+
+  - **`api.py`**: Models for API request and response bodies.
+  - **`alerts.py`**: Data structures for representing alerts fetched from the API.
+  - **`query_terms.py`**: Data structures for query terms.
+  - **`extraction.py`**: Models for representing the results of the term extraction.
+
+- **`src/tests`**: Contains unit tests for the application's components, mirroring the project's structure.
+  - **`clients/`**: Tests for the API clients.
+  - **`extraction/`**: Tests for the core term-matching logic.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

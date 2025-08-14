@@ -25,7 +25,9 @@ app = FastAPI(
 )
 
 
-@app.post("/start-extraction", response_model=ExtractionResponse)
+@app.post(
+    "/start-extraction", response_model=ExtractionResponse, tags=["Extraction Process"]
+)
 async def start_extraction(request: ExtractionRequest):
     """
     Start the alert term extraction process in the background.
@@ -81,7 +83,9 @@ async def start_extraction(request: ExtractionRequest):
         )
 
 
-@app.post("/stop-extraction", response_model=ExtractionResponse)
+@app.post(
+    "/stop-extraction", response_model=ExtractionResponse, tags=["Extraction Process"]
+)
 async def stop_extraction():
     """
     Stop the currently running alert term extraction process.
@@ -135,7 +139,7 @@ async def stop_extraction():
         )
 
 
-@app.get("/extraction-status")
+@app.get("/extraction-status", tags=["Extraction Process"])
 async def get_extraction_status():
     """
     Get the current status of the alert term extraction process.
@@ -165,7 +169,7 @@ async def get_extraction_status():
     }
 
 
-@app.get("/health")
+@app.get("/health", tags=["Status"])
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "timestamp": time.time()}
