@@ -37,7 +37,7 @@ async def start_extraction(request: ExtractionRequest):
 
     Args:
         request: An `ExtractionRequest` containing:
-            - `frequency_ms`: The interval in milliseconds for checking alerts (100-1000).
+            - `frequency_ms`: The interval in milliseconds for checking alerts (1-1000).
             - `total_checks` (optional): The total number of checks before stopping.
                                         If None, runs indefinitely.
 
@@ -109,6 +109,9 @@ async def stop_extraction():
         )
 
     try:
+        # Get the process ID before stopping
+        pid = extraction_process.pid
+
         # Signal the process to stop
         should_stop.set()
 
@@ -130,7 +133,9 @@ async def stop_extraction():
         logger.info("Extraction process stopped successfully")
         extraction_process = None
 
-        return ExtractionResponse(message="Extraction process stopped successfully")
+        return ExtractionResponse(
+            message="Extraction process stopped successfully", process_id=pid
+        )
 
     except Exception as e:
         logger.error(f"Failed to stop extraction process: {e}")

@@ -11,16 +11,16 @@ class ExtractionRequest(BaseModel):
 
     Attributes:
         frequency_ms: The interval in milliseconds for checking new alerts.
-                      Must be between 100 and 1000.
+                      Must be between 1 and 1000.
         total_checks: The total number of checks to perform before stopping.
                       If `None`, the process will run indefinitely. Must be at least 1.
     """
 
     frequency_ms: int = Field(
-        ...,
-        ge=100,
+        default=1,
+        ge=1,
         le=1000,
-        description="Frequency of checks in milliseconds (must be between 100 and 1000).",
+        description="Frequency of checks in milliseconds (must be between 1 and 1000).",
     )
     total_checks: Optional[int] = Field(
         default=None,

@@ -52,7 +52,6 @@ def extraction_worker(
                     f"Check {check_count + 1}/{total_checks or '∞'}: Found {len(log_entry.matches)} matches"
                 )
 
-                # Log the entire TermMatchList object as a JSON string
                 if log_entry.matches:
                     logger.bind(extracted_alert=True).info(log_entry.model_dump_json())
 

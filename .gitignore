@@ -203,4 +203,4 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Logs
-.logs
+*.logs

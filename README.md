@@ -140,14 +140,13 @@ Starts the alert term extraction process in a background worker.
 **Example using cURL:**
 
 ```bash
-curl -X POST "http://localhost:8000/start-extraction" -H "Content-Type: application/json" -d '{"frequency_ms": 500, "total_checks": 100}'
+curl -X POST "http://localhost:8000/start-extraction" -H "Content-Type: application/json" -d '{"total_checks": 100}'
 ```
 
 **Request Body:**
 
 ```json
 {
-  "frequency_ms": 500, // integer (100-1000), frequency of checks in milliseconds
   "total_checks": 100 // optional integer, number of checks to perform (default: null = infinite)
 }
 ```
